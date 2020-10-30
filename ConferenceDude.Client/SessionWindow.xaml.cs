@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 using System.Windows;
+using ConferenceDude.Domain;
 
 namespace ConferenceDude.Client
 {
@@ -8,9 +9,12 @@ namespace ConferenceDude.Client
     /// </summary>
     public partial class SessionWindow
     {
+        SessionValidator _validator;
+
         public SessionWindow()
         {
             InitializeComponent();
+            _validator = new SessionValidator();
         }
 
         private async Task LoadSessions()
@@ -34,35 +38,27 @@ namespace ConferenceDude.Client
 
         private async void ButtonSave_Click(object sender, RoutedEventArgs e)
         {
-            if (string.IsNullOrEmpty(TextBoxTitle.Text))
+            if (!int.TryParse(TextBoxId.Text, out var id)) return;
+            var session = new Session
             {
-                MessageBox.Show("Es muss ein Titel angegeben werden.");
+                Id = id,
+                Title = TextBoxTitle.Text,
+                Abstract = TextBoxAbstract.Text
+            };
+
+            if (!_validator.IsValid(session, out var msg))
+            {
+                MessageBox.Show(msg);
                 return;
             }
 
-            if (string.IsNullOrEmpty(TextBoxAbstract.Text))
-            {
-                MessageBox.Show("Es muss ein Abstract angegeben werden.");
-                return;
-            }
-
-            if (int.TryParse(TextBoxId.Text, out var id))
-            {
-                var session = new Session
-                {
-                    Id = id,
-                    Title = TextBoxTitle.Text,
-                    Abstract = TextBoxAbstract.Text
-                };
-
-                var apiClient = new ApiClient();
-                var saved = await apiClient.Save(session);
-                MessageBox.Show(saved ? 
-                    "Session erfolgreich gespeichert." : 
-                    "Session konnte nicht gespeichert werden.", "Info");
-                await LoadSessions();
-            }
+            var apiClient = new ApiClient();
+            var saved = await apiClient.Save(session);
+            MessageBox.Show(saved ? "Session erfolgreich gespeichert." : "Session konnte nicht gespeichert werden.",
+                "Info");
+            await LoadSessions();
         }
+
 
         private async void Window_Initialized(object sender, System.EventArgs e)
         {

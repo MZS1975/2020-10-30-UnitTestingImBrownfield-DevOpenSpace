@@ -6,4 +6,8 @@
     <UseWPF>true</UseWPF>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\ConferenceDude.Domain\ConferenceDude.Domain.csproj" />
+  </ItemGroup>
+
 </Project>
