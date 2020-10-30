@@ -1,3 +1,7 @@
+using System;
+using ConferenceDude.Domain.Sessions;
+using ConferenceDude.Server.Database;
+using ConferenceDude.Server.DomainAdapter;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -19,6 +23,13 @@ namespace ConferenceDude.Server
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
+
+            // Services for Domain
+            services.AddScoped<ISessionRepository, SessionRepository>();
+
+            // Services for Domain Adapter
+            services.AddTransient<ConferenceContext>();
+            services.AddScoped<Func<ConferenceContext>>(f => f.GetService<ConferenceContext>);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

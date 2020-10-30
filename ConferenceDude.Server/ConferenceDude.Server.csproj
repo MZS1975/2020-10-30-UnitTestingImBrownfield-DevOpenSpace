@@ -19,5 +19,13 @@
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="3.1.4" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\ConferenceDude.Domain\ConferenceDude.Domain.csproj" />
+  </ItemGroup>
 
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+      <_Parameter1>ConferenceDude.Server.Tests</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
 </Project>

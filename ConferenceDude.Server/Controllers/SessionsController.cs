@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using ConferenceDude.Domain.Sessions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ConferenceDude.Server.Database;
@@ -10,34 +12,41 @@ namespace ConferenceDude.Server.Controllers
     [ApiController]
     public class SessionsController : ControllerBase
     {
+        private readonly ISessionRepository _sessionRepository;
+
+        public SessionsController(ISessionRepository sessionRepository)
+        {
+            _sessionRepository = sessionRepository;
+        }
+
         // GET: api/Sessions
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Session>>> GetSessions()
+        public async Task<ActionResult<IEnumerable<SessionDto>>> GetSessions()
         {
-            var context = new ConferenceContext();
-            return await context.Sessions.ToListAsync();
+            var sessions = await _sessionRepository.GetAll().ConfigureAwait(false);
+            var sessionDtos = sessions.Select(s => s.ToSessionDto()).ToList();
+            return sessionDtos;
         }
 
         // GET: api/Sessions/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Session>> GetSession(int id)
+        public async Task<ActionResult<SessionDto>> GetSession(int id)
         {
-            var context = new ConferenceContext();
-            var session = await context.Sessions.FindAsync(id);
+            var session = await _sessionRepository.GetById(id);
 
             if (session == null)
             {
                 return NotFound();
             }
 
-            return session;
+            return session.ToSessionDto();
         }
 
         // PUT: api/Sessions/5
         // To protect from overposting attacks, enable the specific properties you want to bind to, for
         // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutSession(int id, Session session)
+        public async Task<IActionResult> PutSession(int id, SessionEntity session)
         {
             if (id != session.Id)
             {
@@ -70,7 +79,7 @@ namespace ConferenceDude.Server.Controllers
         // To protect from overposting attacks, enable the specific properties you want to bind to, for
         // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
         [HttpPost]
-        public async Task<ActionResult<Session>> PostSession(Session session)
+        public async Task<ActionResult<SessionEntity>> PostSession(SessionEntity session)
         {
             var context = new ConferenceContext();
             context.Sessions.Add(session);
@@ -81,7 +90,7 @@ namespace ConferenceDude.Server.Controllers
 
         // DELETE: api/Sessions/5
         [HttpDelete("{id}")]
-        public async Task<ActionResult<Session>> DeleteSession(int id)
+        public async Task<ActionResult<SessionEntity>> DeleteSession(int id)
         {
             var context = new ConferenceContext();
             var session = await context.Sessions.FindAsync(id);

@@ -1,6 +1,6 @@
 ﻿namespace ConferenceDude.Server.Database
 {
-    public class Session
+    public class SessionEntity
     {
         public int Id { get; set; }
         public string Title { get; set; }

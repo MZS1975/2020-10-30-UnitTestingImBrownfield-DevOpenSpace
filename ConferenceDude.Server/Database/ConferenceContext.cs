@@ -4,7 +4,7 @@ namespace ConferenceDude.Server.Database
 {
     public class ConferenceContext : DbContext
     {
-        public DbSet<Session> Sessions { get; set; }
+        public DbSet<SessionEntity> Sessions { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -13,7 +13,7 @@ namespace ConferenceDude.Server.Database
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<Session>()
+            modelBuilder.Entity<SessionEntity>()
                 .HasIndex(s => s.Title)
                 .IsUnique();
         }
