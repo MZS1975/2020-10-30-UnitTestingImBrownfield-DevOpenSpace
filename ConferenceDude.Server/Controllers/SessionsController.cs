@@ -82,7 +82,7 @@ namespace ConferenceDude.Server.Controllers
         // To protect from overposting attacks, enable the specific properties you want to bind to, for
         // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
         [HttpPost]
-        public async Task<ActionResult<SessionEntity>> PostSession(SessionEntity session)
+        public async Task<ActionResult<SessionEntity>> PostSession(SessionDto session)
         {
             var createResult = await _sessionService.Create(session.ToSession()).ConfigureAwait(false);
 
