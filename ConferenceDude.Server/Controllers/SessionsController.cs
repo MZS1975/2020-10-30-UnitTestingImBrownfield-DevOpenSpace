@@ -5,6 +5,7 @@ using ConferenceDude.Domain.Sessions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ConferenceDude.Server.Database;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace ConferenceDude.Server.Controllers
 {
@@ -13,10 +14,12 @@ namespace ConferenceDude.Server.Controllers
     public class SessionsController : ControllerBase
     {
         private readonly ISessionRepository _sessionRepository;
+        private readonly SessionService _sessionService;
 
-        public SessionsController(ISessionRepository sessionRepository)
+        public SessionsController(ISessionRepository sessionRepository, SessionService sessionService)
         {
             _sessionRepository = sessionRepository;
+            _sessionService = sessionService;
         }
 
         // GET: api/Sessions
@@ -81,11 +84,21 @@ namespace ConferenceDude.Server.Controllers
         [HttpPost]
         public async Task<ActionResult<SessionEntity>> PostSession(SessionEntity session)
         {
-            var context = new ConferenceContext();
-            context.Sessions.Add(session);
-            await context.SaveChangesAsync();
+            var createResult = await _sessionService.Create(session.ToSession()).ConfigureAwait(false);
 
-            return CreatedAtAction("GetSession", new { id = session.Id }, session);
+            if (createResult.validationResult.Success)
+            {
+                var newSession = await _sessionRepository.GetById(createResult.id).ConfigureAwait(false);
+                var newSessionDto = newSession.ToSessionDto();
+                return CreatedAtAction("GetSession", new { id = newSessionDto.Id }, newSessionDto);
+            }
+
+            var modelStateDictionary = new ModelStateDictionary();
+            foreach (var message in createResult.validationResult.Messages)
+            {
+                modelStateDictionary.TryAddModelError(message.FieldName, message.ErrorMessage);
+            }
+            return ValidationProblem(modelStateDictionary);
         }
 
         // DELETE: api/Sessions/5

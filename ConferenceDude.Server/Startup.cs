@@ -25,6 +25,7 @@ namespace ConferenceDude.Server
             services.AddControllers();
 
             // Services for Domain
+            services.AddScoped<SessionService>();
             services.AddScoped<ISessionRepository, SessionRepository>();
 
             // Services for Domain Adapter

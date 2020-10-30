@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace ConferenceDude.Domain.Sessions
@@ -7,5 +7,7 @@ namespace ConferenceDude.Domain.Sessions
     {
         Task<IReadOnlyCollection<Session>> GetAll();
         Task<Session> GetById(int id);
+        Task<Session> GetByTitle(string title);
+        Task<int> Create(Session session);
     }
 }

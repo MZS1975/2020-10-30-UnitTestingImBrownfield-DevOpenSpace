@@ -39,5 +39,29 @@ namespace ConferenceDude.Server.DomainAdapter
                 return session.ToSession();
             }
         }
+
+        public async Task<Session> GetByTitle(string title)
+        {
+            using (var ctx = _conferenceContextBuilder())
+            {
+                var session = await ctx.Sessions
+                    .FirstOrDefaultAsync(s => s.Title == title)
+                    .ConfigureAwait(false);
+
+                return session?.ToSession();
+            }
+        }
+
+        public async Task<int> Create(Session session)
+        {
+            using (var ctx = _conferenceContextBuilder())
+            {
+                var sessionEntity = session.ToSessionEntity();
+                ctx.Sessions.Add(sessionEntity);
+                await ctx.SaveChangesAsync().ConfigureAwait(false);
+
+                return sessionEntity.Id;
+            }
+        }
     }
 }
