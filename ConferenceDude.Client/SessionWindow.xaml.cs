@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using ConferenceDude.Domain;
 
@@ -15,6 +16,12 @@ namespace ConferenceDude.Client
         {
             InitializeComponent();
             _validator = new SessionValidator();
+
+//#if DEBUG
+            if (EventWaitHandle.TryOpenExisting("DUDECLIENT_PROCESS_READY", out var handle))
+                handle.Set();
+//#endif
+
         }
 
         private async Task LoadSessions()

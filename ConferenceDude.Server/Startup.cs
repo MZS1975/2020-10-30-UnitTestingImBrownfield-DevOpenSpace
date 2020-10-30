@@ -1,3 +1,4 @@
+using System.Threading;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -39,6 +40,11 @@ namespace ConferenceDude.Server
             {
                 endpoints.MapControllers();
             });
+//#if DEBUG
+            if (EventWaitHandle.TryOpenExisting("DUDESERVER_PROCESS_READY", out var handle))
+                handle.Set();
+//#endif
+
         }
     }
 }
