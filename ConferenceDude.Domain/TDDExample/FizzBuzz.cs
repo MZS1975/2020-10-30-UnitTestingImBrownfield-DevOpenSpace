@@ -1,5 +1,8 @@
-﻿namespace ConferenceDude.Domain.TDDExample
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace ConferenceDude.Domain.TDDExample
 {
+    [ExcludeFromCodeCoverage]
     public class FizzBuzz
     {
         public string ToFizzBuzz(int zahl)

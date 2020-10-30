@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 using System.Windows;
+using ConferenceDude.Domain.Sessions;
 
 namespace ConferenceDude.Client
 {
@@ -27,41 +28,39 @@ namespace ConferenceDude.Client
 
         private void NewSession()
         {
-            TextBoxId.Text = "0";
-            TextBoxTitle.Text = string.Empty;
-            TextBoxAbstract.Text = string.Empty;
+            var session = new Session();
+            TextBoxId.Text = session.Id.ToString();
+            TextBoxTitle.Text = session.Title;
+            TextBoxAbstract.Text = session.Abstract;
         }
 
         private async void ButtonSave_Click(object sender, RoutedEventArgs e)
         {
-            if (string.IsNullOrEmpty(TextBoxTitle.Text))
+            var session = new Session
             {
-                MessageBox.Show("Es muss ein Titel angegeben werden.");
-                return;
-            }
+                Id = int.Parse(TextBoxId.Text),
+                Title = TextBoxTitle.Text,
+                Abstract = TextBoxAbstract.Text
+            };
 
-            if (string.IsNullOrEmpty(TextBoxAbstract.Text))
+            var validationResult = session.Validate();
+            if (!validationResult.Success)
             {
-                MessageBox.Show("Es muss ein Abstract angegeben werden.");
-                return;
-            }
-
-            if (int.TryParse(TextBoxId.Text, out var id))
-            {
-                var session = new Session
+                foreach (var message in validationResult.Messages)
                 {
-                    Id = id,
-                    Title = TextBoxTitle.Text,
-                    Abstract = TextBoxAbstract.Text
-                };
+                    MessageBox.Show(
+                        $"Feld {message.FieldName} - {message.ErrorMessage}");
+                }
 
-                var apiClient = new ApiClient();
-                var saved = await apiClient.Save(session);
-                MessageBox.Show(saved ? 
-                    "Session erfolgreich gespeichert." : 
-                    "Session konnte nicht gespeichert werden.", "Info");
-                await LoadSessions();
+                return;
             }
+
+            var apiClient = new ApiClient();
+            var saved = await apiClient.Save(session);
+            MessageBox.Show(saved ? 
+                "Session erfolgreich gespeichert." : 
+                "Session konnte nicht gespeichert werden.", "Info");
+            await LoadSessions();
         }
 
         private async void Window_Initialized(object sender, System.EventArgs e)
@@ -72,7 +71,7 @@ namespace ConferenceDude.Client
 
         private void DataGridSessions_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
-            var session = (DataGridSessions.SelectedItem as Session);
+            var session = (DataGridSessions.SelectedItem as SessionModel);
             if (session != null)
             {
                 TextBoxId.Text = session.Id.ToString();

@@ -6,6 +6,7 @@ using System.Net.Mime;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using ConferenceDude.Domain.Sessions;
 
 namespace ConferenceDude.Client
 {
@@ -22,27 +23,27 @@ namespace ConferenceDude.Client
                 new MediaTypeWithQualityHeaderValue(MediaTypeNames.Application.Json));
         }
 
-        public async Task<List<Session>> AllSessions()
+        public async Task<List<SessionModel>> AllSessions()
         {
             var response = await _client.GetStringAsync("api/Sessions");
             if (!string.IsNullOrEmpty(response))
             {
-                var sessions = JsonSerializer.Deserialize<List<Session>>(response,
+                var sessions = JsonSerializer.Deserialize<List<SessionModel>>(response,
                     new JsonSerializerOptions {PropertyNameCaseInsensitive = true});
                 return sessions;
             }
 
-            return new List<Session>();
+            return new List<SessionModel>();
         }
 
         public async Task<bool> Save(Session session)
         {
-            if (session.Id == 0)
+            if (session.IsNew())
             {
-                return await CreateSession(session);
+                return await CreateSession(session.ToSessionModel());
             }
 
-            return await UpdateSession(session);
+            return await UpdateSession(session.ToSessionModel());
         }
 
         public async Task<bool> DeleteSession(int sessionId)
@@ -51,7 +52,7 @@ namespace ConferenceDude.Client
             return response.IsSuccessStatusCode;
         }
 
-        private async Task<bool> CreateSession(Session session)
+        private async Task<bool> CreateSession(SessionModel session)
         {
             var sessionAsJson = JsonSerializer.Serialize(session);
             var content = new StringContent(sessionAsJson, Encoding.UTF8, MediaTypeNames.Application.Json);
@@ -60,7 +61,7 @@ namespace ConferenceDude.Client
             return response.IsSuccessStatusCode;
         }
 
-        private async Task<bool> UpdateSession(Session session)
+        private async Task<bool> UpdateSession(SessionModel session)
         {
             var sessionAsJson = JsonSerializer.Serialize(session);
             var content = new StringContent(sessionAsJson, Encoding.UTF8, MediaTypeNames.Application.Json);

@@ -1,6 +1,6 @@
 ﻿namespace ConferenceDude.Client
 {
-    internal class Session
+    internal class SessionModel
     {
         public int Id { get; set; }
         public string Title { get; set; }
