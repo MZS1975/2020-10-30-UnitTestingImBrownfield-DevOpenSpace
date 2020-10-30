@@ -1,9 +1,12 @@
-﻿namespace ConferenceDude.Client
+﻿using System;
+
+namespace ConferenceDude.Domain
 {
-    internal class Session
+    public class Session
     {
         public int Id { get; set; }
         public string Title { get; set; }
         public string Abstract { get; set; }
+        public bool IsNew => Id == 0;
     }
 }
