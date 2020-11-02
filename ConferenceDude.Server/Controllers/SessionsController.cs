@@ -1,67 +1,59 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using ConferenceDude.Server.Database;
-
-namespace ConferenceDude.Server.Controllers
+﻿namespace ConferenceDude.Server.Controllers
 {
-    [Route("api/[controller]")]
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading.Tasks;
+    using Application.Session;
+    using Domain.Session;
+    using Microsoft.AspNetCore.Mvc;
+
+    [Route("[controller]")]
     [ApiController]
     public class SessionsController : ControllerBase
     {
-        // GET: api/Sessions
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Session>>> GetSessions()
+        private readonly ISessionRepository _sessionRepository;
+        private readonly ISessionTransportConverter _sessionTransportConverter;
+
+        public SessionsController(ISessionRepository sessionRepository, ISessionTransportConverter sessionTransportConverter)
         {
-            var context = new ConferenceContext();
-            return await context.Sessions.ToListAsync();
+            _sessionRepository = sessionRepository;
+            _sessionTransportConverter = sessionTransportConverter;
+        }
+
+        // GET: sessions
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<SessionDto>>> GetSessions()
+        {
+            var sessions = await _sessionRepository.ListAsync();
+            return Ok(sessions.Select(s => _sessionTransportConverter.FromSession(s)));
         }
 
         // GET: api/Sessions/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Session>> GetSession(int id)
+        public async Task<ActionResult<SessionDto>> GetSession(int id)
         {
-            var context = new ConferenceContext();
-            var session = await context.Sessions.FindAsync(id);
+            var session = await _sessionRepository.GetAsync(new SessionIdentity(id));
 
             if (session == null)
             {
-                return NotFound();
+                return NotFound(id);
             }
 
-            return session;
+            return Ok(_sessionTransportConverter.FromSession(session));
         }
 
         // PUT: api/Sessions/5
         // To protect from overposting attacks, enable the specific properties you want to bind to, for
         // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutSession(int id, Session session)
+        public async Task<IActionResult> PutSession([FromRoute]int id, [FromBody]SessionDto session)
         {
             if (id != session.Id)
             {
                 return BadRequest();
             }
 
-            var context = new ConferenceContext();
-            context.Entry(session).State = EntityState.Modified;
-
-            try
-            {
-                await context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!await SessionExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            await _sessionRepository.UpdateAsync(_sessionTransportConverter.ToSession(session)!, new SessionIdentity(id));
 
             return NoContent();
         }
@@ -70,36 +62,19 @@ namespace ConferenceDude.Server.Controllers
         // To protect from overposting attacks, enable the specific properties you want to bind to, for
         // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
         [HttpPost]
-        public async Task<ActionResult<Session>> PostSession(Session session)
+        public async Task<ActionResult<SessionDto>> PostSession([FromBody] SessionDto session)
         {
-            var context = new ConferenceContext();
-            context.Sessions.Add(session);
-            await context.SaveChangesAsync();
+            var created = await _sessionRepository.CreateAsync(_sessionTransportConverter.ToSession(session)!);
 
-            return CreatedAtAction("GetSession", new { id = session.Id }, session);
+            return CreatedAtAction("GetSession", new { id = created.Id }, _sessionTransportConverter.FromSession(created));
         }
 
         // DELETE: api/Sessions/5
         [HttpDelete("{id}")]
-        public async Task<ActionResult<Session>> DeleteSession(int id)
+        public async Task<ActionResult> DeleteSession(int id)
         {
-            var context = new ConferenceContext();
-            var session = await context.Sessions.FindAsync(id);
-            if (session == null)
-            {
-                return NotFound();
-            }
-
-            context.Sessions.Remove(session);
-            await context.SaveChangesAsync();
-
-            return session;
-        }
-
-        private async Task<bool> SessionExists(int id)
-        {
-            var context = new ConferenceContext();
-            return await context.Sessions.AnyAsync(e => e.Id == id);
+            await _sessionRepository.DeleteAsync(new SessionIdentity(id));
+            return Ok();
         }
     }
 }
